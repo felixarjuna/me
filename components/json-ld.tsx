@@ -8,14 +8,14 @@ const baseUrl = `${protocol}://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
 const person: WithContext<Person> = {
   '@context': 'https://schema.org',
   '@type': 'Person',
-  name: 'Hayden Bleasel',
-  description: 'Design Engineer',
+  name: 'Felix Arjuna',
+  description: 'Cloud DevOps Engineer',
   gender: 'male',
-  nationality: 'Australian',
+  nationality: 'Indonesian',
   url: baseUrl,
-  image: new URL('/profile.jpg', baseUrl).toString(),
+  image: new URL('/profile.png', baseUrl).toString(),
   sameAs: Object.values(social).map(({ href }) => href),
-  alumniOf: 'University of Technology Sydney',
+  alumniOf: 'Aachen University of Applied Sciences',
 };
 
 export const JsonLd = () => (

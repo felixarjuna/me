@@ -8,13 +8,13 @@ type MetadataGenerator = Omit<Metadata, 'description' | 'title'> & {
   image?: string;
 };
 
-const applicationName = 'Hayden Bleasel';
+const applicationName = 'Felix Arjuna';
 const author: Metadata['authors'] = {
-  name: 'Hayden Bleasel',
-  url: 'https://haydenbleasel.com/',
+  name: 'Felix Arjuna',
+  url: 'https://felixarjuna.dev/',
 };
-const publisher = 'Hayden Bleasel';
-const twitterHandle = '@haydenbleasel';
+const publisher = 'Felix Arjuna';
+const twitterHandle = '@felixarjunaaa';
 
 export const createMetadata = ({
   title,
