@@ -35,6 +35,10 @@ const pages = defineCollection({
     return {
       ...page,
       body,
+      _meta: {
+        ...page._meta,
+        path: page._meta.path.replace(/\\/g, '/'),
+      },
     };
   },
 });
@@ -55,12 +59,18 @@ const posts = defineCollection({
       rehypePlugins: [[rehypeCode, rehypeCodeOptions], remarkHeading],
     });
 
+    const normalizedPath = page._meta.path.replace(/\\/g, '/');
+
     return {
       ...page,
       date: new Date(page.date),
       body,
-      slug: page._meta.path,
+      slug: normalizedPath,
       readingTime: readingTime(page.content).text,
+      _meta: {
+        ...page._meta,
+        path: normalizedPath,
+      },
     };
   },
 });
