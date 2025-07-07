@@ -39,5 +39,5 @@ export const mono = local({
       style: 'italic',
     },
   ],
-  variable: '--font-mono',
+  variable: '--font-mono-buch',
 });
