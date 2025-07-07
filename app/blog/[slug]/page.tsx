@@ -42,7 +42,7 @@ export const generateStaticParams = (): { slug: string }[] =>
 
 const Page: FC<PageProperties> = async ({ params }) => {
   const { slug } = await params;
-  const page = allPosts.find((page) => page._meta.path === `blog/${slug}`);
+  const page = allPosts.find((page) => page._meta.path === `blog\\${slug}`);
 
   if (!page) {
     notFound();
