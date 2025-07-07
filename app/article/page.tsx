@@ -27,8 +27,6 @@ export const metadata: Metadata = createMetadata({
   ogText: 'My article — A deep and technical writings.',
 });
 
-console.log(postsByYear);
-
 const Posts = () => (
   <>
     <Section className="gap-0">
