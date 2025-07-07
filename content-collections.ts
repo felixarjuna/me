@@ -75,6 +75,38 @@ const posts = defineCollection({
   },
 });
 
+const articles = defineCollection({
+  name: 'articles',
+  directory: 'content',
+  include: 'article/*.mdx',
+  schema: (z) => ({
+    title: z.string(),
+    description: z.string(),
+    date: z.coerce.date(),
+    image: z.string().optional(),
+  }),
+  transform: async (page, context) => {
+    const body = await compileMDX(context, page, {
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [[rehypeCode, rehypeCodeOptions], remarkHeading],
+    });
+
+    const normalizedPath = page._meta.path.replace(/\\/g, '/');
+
+    return {
+      ...page,
+      date: new Date(page.date),
+      body,
+      slug: normalizedPath,
+      readingTime: readingTime(page.content).text,
+      _meta: {
+        ...page._meta,
+        path: normalizedPath,
+      },
+    };
+  },
+});
+
 export default defineConfig({
-  collections: [pages, posts],
+  collections: [pages, posts, articles],
 });
