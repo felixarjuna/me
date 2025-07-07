@@ -1,6 +1,6 @@
-# haydenbleasel.com
+# felixarjuna.dev
 
-Hello! I'm Hayden Bleasel, a software engineer and designer. This is my personal website - it's built with [Next.js](https://nextjs.org) and hosted on [Vercel](https://vercel.com).
+Hello! I'm Felix Arjuna, a software engineer, cloud engineer and ai engineer. This is my personal website - it's built with [Next.js](https://nextjs.org) and hosted on [Vercel](https://vercel.com).
 
 ## Contributing
 
