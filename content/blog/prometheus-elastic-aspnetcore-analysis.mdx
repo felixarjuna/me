@@ -17,7 +17,7 @@ After comprehensive analysis of both scenarios, I'm presenting this technical ev
 **Our Environment Context:**
 - Internal tools and applications (non-SaaS)
 - Currently Windows hosting (Linux migration planned for this year)
-- Moderate request volume: ~10,000-50,000 requests/day across all internal services
+- Moderate request volume: ~10,000-50,000 requests/day
 - Small to medium-scale monitoring requirements
 
 **Our Existing Stack:**
@@ -42,7 +42,7 @@ After comprehensive analysis of both scenarios, I'm presenting this technical ev
 # Minimal viable Elastic cluster for our 10k-50k requests/day
 - Single Elasticsearch node: 1x (4 vCPU, 8GB RAM)
 - APM Server: 1x (2 vCPU, 2GB RAM)
-- Kibana: 1x (2 vCPU, 2GB RAM)
+- Grafana: 1x (2 vCPU, 2GB RAM)
 # Total: 12GB RAM, 8 vCPUs for monitoring infrastructure
 # Note: This is minimum viable - production typically needs 16-24GB RAM
 ```
