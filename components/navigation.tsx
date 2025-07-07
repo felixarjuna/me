@@ -37,7 +37,7 @@ const links = [
     active: (pathname: string) => pathname.startsWith('/contact'),
   },
   {
-    href: 'https://felixarjuna.vercel.app',
+    href: 'https://cv.felixarjuna.dev',
     label: 'CV',
     active: (pathname: string) => pathname.startsWith('/cv'),
   },
