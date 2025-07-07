@@ -4,7 +4,8 @@ import { createMetadata } from '@/lib/metadata';
 import { allPages } from 'content-collections';
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import avatar from './avatar.jpg';
+import Link from 'next/link';
+import avatar from './avatar.png';
 
 const page = allPages.find((page) => page._meta.fileName === 'home.mdx');
 
@@ -32,11 +33,14 @@ const HomePage = () => (
       />
       <div>
         <p className="font-medium text-foreground leading-normal">
-          Hayden Bleasel
+          Felix Arjuna
         </p>
         <p className="text-foreground-lighter text-sm leading-normal">
-          Designer and Engineer, currently at{' '}
-          <a href="https://vercel.com">Vercel</a>.
+          Cloud DevOps Engineer, currently at{' '}
+          <Link href="https://www.klafka-hinz.de">
+            Klafka & Hinz Energie-Informations-Systeme
+          </Link>
+          .
         </p>
       </div>
     </Section>

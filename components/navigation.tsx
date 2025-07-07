@@ -11,21 +11,21 @@ const links = [
     label: 'Home',
     active: (pathname: string) => pathname === '/',
   },
-  {
-    href: '/about',
-    label: 'About',
-    active: (pathname: string) => pathname.startsWith('/about'),
-  },
-  {
-    href: '/work',
-    label: 'Work',
-    active: (pathname: string) => pathname.startsWith('/work'),
-  },
-  {
-    href: '/projects',
-    label: 'Projects',
-    active: (pathname: string) => pathname.startsWith('/projects'),
-  },
+  // {
+  //   href: '/about',
+  //   label: 'About',
+  //   active: (pathname: string) => pathname.startsWith('/about'),
+  // },
+  // {
+  //   href: '/work',
+  //   label: 'Work',
+  //   active: (pathname: string) => pathname.startsWith('/work'),
+  // },
+  // {
+  //   href: '/projects',
+  //   label: 'Projects',
+  //   active: (pathname: string) => pathname.startsWith('/projects'),
+  // },
   {
     href: '/blog',
     label: 'Blog',

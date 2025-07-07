@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react';
+import React from 'react';
 
 export const LocalTime = () => {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = React.useState(new Date());
 
-  useEffect(() => {
+  React.useEffect(() => {
     const interval = setInterval(() => {
       setTime(new Date());
     }, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  const render = new Intl.DateTimeFormat('en-US', {
+  const render = new Intl.DateTimeFormat('de-DE', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    timeZone: 'America/Los_Angeles',
+    timeZone: 'Europe/Berlin',
   }).format(time);
 
   return (
