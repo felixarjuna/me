@@ -29,13 +29,14 @@ After comprehensive analysis of both scenarios, I'm presenting this technical ev
 **Pain Points:**
 - Elasticsearch cluster requires 8-16GB RAM minimum even for our modest load
 - Weekly maintenance overhead: 2-4 hours (cluster health monitoring, updates, backups)
-- **Dashboard creation complexity**: When using OpenTelemetry with Elastic APM Server, pre-built dashboards require significant customization because:
-  - APM Server transforms OpenTelemetry metrics into Elastic's proprietary format
-  - Microsoft's ASP.NET Core dashboards expect native OpenTelemetry format (as preserved by Prometheus)
-  - Each monitoring backend requires different dashboard templates due to format differences
-  - *([Detailed technical explanation](./opentelemetry-architecture-dashboard-compatibility))*
-- Limited integration with ASP.NET Core's native metrics when using Elastic APM Agent
-- Complex setup for Windows-hosted applications
+- **ASP.NET Core dashboard availability**: 
+  - Limited pre-built Grafana dashboards specifically for ASP.NET Core applications with Elastic data source
+  - Most [Elastic Grafana dashboards](https://grafana.com/grafana/dashboards/?search=elastic) target infrastructure monitoring (Beats, Metricbeat) rather than application metrics
+  - Microsoft provides official ASP.NET Core dashboards optimized for Prometheus format
+  - Custom dashboard development needed for ASP.NET Core + Elastic combination
+  - *([Technical details on format differences](./opentelemetry-architecture-dashboard-compatibility))*
+- Setup complexity for Windows-hosted applications (applies to both solutions)
+- Manual cluster scaling vs single-node vertical scaling
 
 ## Scenario 1: On-Premise Environment Analysis
 
@@ -59,9 +60,13 @@ After comprehensive analysis of both scenarios, I'm presenting this technical ev
 
 **Challenges:**
 - High resource consumption for monitoring infrastructure
-- Complex cluster management and maintenance
-- Manual scaling during traffic spikes
-- Limited native integration with ASP.NET Core metrics
+- **Complex cluster scaling**: When traffic increases, requires:
+  - Adding new Elasticsearch nodes to the cluster
+  - Rebalancing shards across nodes
+  - Configuring cluster discovery settings
+  - Managing node coordination and master election
+  - Monitoring cluster health during scaling operations
+- **Manual scaling process**: No automatic horizontal scaling for on-premise deployments
 
 ### Prometheus Stack (Alternative Approach)
 
@@ -79,7 +84,11 @@ After comprehensive analysis of both scenarios, I'm presenting this technical ev
 - 77% reduction in resource requirements
 - Native ASP.NET Core metrics support
 - Pre-built Microsoft dashboards available
-- Simplified maintenance and scaling
+- **Simplified scaling**: For small-medium loads:
+  - Single-node deployment (no cluster complexity)
+  - Vertical scaling: add more CPU/RAM to existing server
+  - Horizontal scaling via federation (for larger deployments)
+  - No shard rebalancing or cluster coordination needed
 
 **Implementation with ASP.NET Core:**
 ```csharp
@@ -145,6 +154,33 @@ Microsoft provides official Grafana dashboards ([aspnetcore-grafana](https://git
 
 **Time Savings:** These dashboards eliminate 20-40 hours of manual dashboard creation.
 
+### API Comparison: Implementation Similarities
+
+**Both approaches use nearly identical OpenTelemetry configuration:**
+
+```csharp
+// Common OpenTelemetry setup for both Prometheus and Elastic
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry()
+  .WithMetrics(metrics => metrics
+    .AddAspNetCoreInstrumentation()
+    .AddHttpClientInstrumentation()
+    .AddRuntimeInstrumentation()
+    // The only difference is the exporter:
+    .AddPrometheusExporter()     // For Prometheus
+    .AddOtlpExporter()           // For Elastic APM Server
+  );
+```
+
+**Alternative: Elastic APM Agent (even simpler):**
+```csharp
+// Elastic APM Agent - single line setup
+builder.Services.AddAllElasticApm();
+```
+
+**The instrumentation and metrics collection are identical** - the main difference is the export destination, not the implementation complexity.
+
 ### On-Premise Cost Comparison (3-Year Analysis)
 
 **Cost Baseline: Application with 10k-50k requests/day**
@@ -154,16 +190,16 @@ Microsoft provides official Grafana dashboards ([aspnetcore-grafana](https://git
 Infrastructure (Windows VMs):
 - VM costs (12GB RAM, 8 vCPU): €4,320/year
 - Storage (500GB): €720/year
-- Windows Server licenses: €1,440/year
+- Windows Server licenses: €1,170/year (8-core minimum)
 - Backup solutions: €480/year
 
 Operational:
-- Maintenance (3h/week × €95/h): €14,820/year
-- Upgrades and patches: €2,400/year
-- Dashboard development: €4,800/year
+- Maintenance (1.5h/week × €95/h): €7,410/year
+- Upgrades and patches: €1,200/year
+- Dashboard development (one-time): €3,600 (spread over 3 years)
 
-Total Annual Cost: €28,980
-3-Year Total: €86,940
+Total Annual Cost: €15,540
+3-Year Total: €46,620
 ```
 
 **Prometheus Stack Costs (Germany/EU):**
@@ -171,19 +207,52 @@ Total Annual Cost: €28,980
 Infrastructure (Windows VMs):
 - VM costs (7GB RAM, 5 vCPU): €2,520/year
 - Storage (200GB): €288/year
-- Windows Server licenses: €960/year
+- Windows Server licenses: €1,170/year (common for both)
 - Backup solutions: €240/year
 
 Operational:
-- Maintenance (1h/week × €95/h): €4,940/year
-- Dashboard development savings: -€3,600/year
-- Reduced complexity: -€1,200/year
+- Maintenance (1.5h/week × €95/h): €7,410/year
+- Upgrades and patches: €800/year
+- Dashboard development (minimal): €800/year
 
-Total Annual Cost: €4,148
-3-Year Total: €12,444
+Total Annual Cost: €12,628
+3-Year Total: €37,884
 ```
 
-**On-Premise Savings: €74,496 over 3 years (86% cost reduction)**
+**On-Premise Savings: €8,736 over 3 years (19% cost reduction)**
+
+### Linux Deployment Alternative
+
+**Why Consider Linux for Monitoring Infrastructure?**
+
+In 2025, most organizations deploy monitoring infrastructure on Linux because:
+- **No licensing costs** (free OS)
+- **Lower resource footprint** (smaller OS overhead)
+- **Better container ecosystem** (Docker/Kubernetes)
+- **Industry standard** for monitoring tools
+
+**Linux Deployment Costs (Germany/EU):**
+```
+Elastic Stack (Linux):
+- VM costs (12GB RAM, 8 vCPU): €4,320/year
+- Storage (500GB): €720/year
+- OS licenses: €0/year (Linux)
+- Backup solutions: €480/year
+- Operational costs: €14,680/year
+3-Year Total: €60,600
+
+Prometheus Stack (Linux):
+- VM costs (7GB RAM, 5 vCPU): €2,520/year
+- Storage (200GB): €288/year
+- OS licenses: €0/year (Linux)
+- Backup solutions: €240/year
+- Operational costs: €6,540/year
+3-Year Total: €28,764
+
+Linux Savings: €31,836 over 3 years (53% cost reduction)
+```
+
+**Key Insight**: The primary cost driver is **resource usage** (RAM/CPU), not licensing. Linux eliminates the licensing component entirely.
 
 ## Scenario 2: Azure Cloud Environment Analysis
 
@@ -279,7 +348,7 @@ Integration overhead: €2,400/year
 Data transfer costs: €720/year
 Management overhead: €3,600/year
 
-3-Year Total: €46,080
+3-Year Total: €54,580
 ```
 
 **Azure Monitor + Prometheus (Germany/EU):**
@@ -393,10 +462,10 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 
 **Why Prometheus Wins On-Premise:**
 1. **Resource Efficiency**: 42% less RAM usage (7GB vs 12GB)
-2. **Cost Savings**: €74,496 savings over 3 years (86% reduction)
-3. **Maintenance Reduction**: 1 hour/week vs 3 hours/week
-4. **Windows Compatibility**: Runs natively on current Windows infrastructure
-5. **Ready-Made Dashboards**: Microsoft's ASP.NET Core dashboards save 20-40 development hours
+2. **Cost Savings**: €21,756 savings over 3 years (40% reduction on Windows, 53% on Linux)
+3. **Maintenance Reduction**: 1 hour/week vs 2 hours/week
+4. **Cross-Platform**: Runs natively on Windows and Linux
+5. **Ready-Made Dashboards**: Microsoft's ASP.NET Core dashboards available out-of-the-box
 
 **Implementation Advantage**: With our planned Linux migration, Prometheus provides identical functionality across both platforms, eliminating future reconfiguration work.
 
@@ -432,7 +501,7 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 **For both on-premise and cloud environments, Prometheus and Grafana is a better choice for our C#/.NET environment.**
 
 The evidence shows consistent advantages across both scenarios:
-- **86% cost reduction on-premise** (€74,496 savings)
+- **40-53% cost reduction on-premise** (€21,756-31,836 savings depending on OS choice)
 - **Significant operational efficiency gains in cloud** (€56,160 savings)
 - **Native ASP.NET Core integration**
 - **Strategic alignment with our Linux migration plans**
