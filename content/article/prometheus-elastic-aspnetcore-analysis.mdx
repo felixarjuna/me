@@ -191,7 +191,7 @@ Infrastructure (Windows VMs):
 - VM costs (12GB RAM, 8 vCPU): €4,320/year
 - Storage (500GB): €720/year
 - Windows Server licenses: €1,170/year (8-core minimum)
-- Backup solutions: €480/year
+- Backup storage: €480/year (~300GB backup data)
 
 Operational:
 - Maintenance (1.5h/week × €95/h): €7,410/year
@@ -208,7 +208,7 @@ Infrastructure (Windows VMs):
 - VM costs (7GB RAM, 5 vCPU): €2,520/year
 - Storage (200GB): €288/year
 - Windows Server licenses: €1,170/year (common for both)
-- Backup solutions: €240/year
+- Backup storage: €240/year (~75GB backup data)
 
 Operational:
 - Maintenance (1.5h/week × €95/h): €7,410/year
@@ -220,6 +220,24 @@ Total Annual Cost: €12,628
 ```
 
 **On-Premise Savings: €8,736 over 3 years (19% cost reduction)**
+
+### Backup Cost Analysis
+
+**The backup cost difference is driven by data volume, not operational complexity:**
+
+**Elasticsearch Backup Requirements:**
+- **Data Volume**: ~200-300GB (logs + metrics + indices)
+- **Backup Storage**: ~300GB (with compression)
+- **Content**: Raw data, inverted indices, cluster configuration
+- **Retention**: Longer retention for compliance/debugging
+
+**Prometheus Backup Requirements:**
+- **Data Volume**: ~50-75GB (compressed time-series)
+- **Backup Storage**: ~75GB
+- **Content**: Compressed metrics, configuration files
+- **Retention**: Standard time-series retention
+
+**Key Insight**: Both systems use the same backup infrastructure and processes. The cost difference is purely storage-based, not operational complexity.
 
 ### Linux Deployment Alternative
 
@@ -237,19 +255,19 @@ Elastic Stack (Linux):
 - VM costs (12GB RAM, 8 vCPU): €4,320/year
 - Storage (500GB): €720/year
 - OS licenses: €0/year (Linux)
-- Backup solutions: €480/year
-- Operational costs: €14,680/year
-3-Year Total: €60,600
+- Backup storage: €480/year (~300GB backup data)
+- Operational costs: €10,410/year
+3-Year Total: €47,790
 
 Prometheus Stack (Linux):
 - VM costs (7GB RAM, 5 vCPU): €2,520/year
 - Storage (200GB): €288/year
 - OS licenses: €0/year (Linux)
-- Backup solutions: €240/year
-- Operational costs: €6,540/year
-3-Year Total: €28,764
+- Backup storage: €240/year (~75GB backup data)
+- Operational costs: €9,010/year
+3-Year Total: €36,174
 
-Linux Savings: €31,836 over 3 years (53% cost reduction)
+Linux Savings: €11,616 over 3 years (24% cost reduction)
 ```
 
 **Key Insight**: The primary cost driver is **resource usage** (RAM/CPU), not licensing. Linux eliminates the licensing component entirely.
@@ -462,8 +480,8 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 
 **Why Prometheus Wins On-Premise:**
 1. **Resource Efficiency**: 42% less RAM usage (7GB vs 12GB)
-2. **Cost Savings**: €21,756 savings over 3 years (40% reduction on Windows, 53% on Linux)
-3. **Maintenance Reduction**: 1 hour/week vs 2 hours/week
+2. **Cost Savings**: €8,736 savings over 3 years (19% reduction on Windows, 24% on Linux)
+3. **Lower Data Volume**: Smaller storage and backup requirements
 4. **Cross-Platform**: Runs natively on Windows and Linux
 5. **Ready-Made Dashboards**: Microsoft's ASP.NET Core dashboards available out-of-the-box
 
@@ -501,7 +519,7 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 **For both on-premise and cloud environments, Prometheus and Grafana is a better choice for our C#/.NET environment.**
 
 The evidence shows consistent advantages across both scenarios:
-- **40-53% cost reduction on-premise** (€21,756-31,836 savings depending on OS choice)
+- **19-24% cost reduction on-premise** (€8,736-11,616 savings depending on OS choice)
 - **Significant operational efficiency gains in cloud** (€56,160 savings)
 - **Native ASP.NET Core integration**
 - **Strategic alignment with our Linux migration plans**
