@@ -1,0 +1,248 @@
+---
+title: "OpenTelemetry Architecture: Why Your Dashboards Break When You Switch from Prometheus to Elastic APM"
+description: "Deep dive into OpenTelemetry SDK, instrumentation libraries, and exporters - understanding why the same metrics produce different dashboards in Prometheus vs Elastic APM Server"
+date: 07-08-2025
+---
+
+# OpenTelemetry Architecture: Why Your Dashboards Break When You Switch from Prometheus to Elastic APM
+
+## The Problem Every DevOps Engineer Faces
+
+You've implemented OpenTelemetry in your ASP.NET Core application. Everything works perfectly with Prometheus and Grafana. Then you decide to switch to Elastic APM Server for better log correlation, and suddenly **all your beautiful dashboards are broken**.
+
+The metrics are there, but the field names are different. The queries don't work. Your pre-built Microsoft dashboards are useless.
+
+**What happened?**
+
+The answer lies in understanding how OpenTelemetry actually works under the hood.
+
+## OpenTelemetry Architecture: The Three Essential Components
+
+### 1. OpenTelemetry SDK
+The core framework that lives in your application:
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// This is the SDK - it provides the APIs and core functionality
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics => { ... });
+```
+
+**What it does:**
+- Provides APIs for creating metrics, traces, and logs
+- Manages telemetry data collection in memory
+- Coordinates between instrumentation libraries and exporters
+
+### 2. Instrumentation Libraries
+Auto-instrumentation packages that collect data from frameworks:
+```csharp
+metrics
+  .AddAspNetCoreInstrumentation()           // HTTP request metrics
+  .AddHttpClientInstrumentation()           // Outbound HTTP calls
+  .AddRuntimeInstrumentation()              // .NET runtime metrics
+  .AddEntityFrameworkCoreInstrumentation(); // Database queries
+```
+
+**What they generate:**
+- Standardized OpenTelemetry metrics with consistent naming
+- Example: `http.server.request.duration`, `dotnet.gc.collections`
+- These follow OpenTelemetry semantic conventions
+
+### 3. Exporters (The Critical Component)
+Components that send telemetry data to different backends:
+```csharp
+metrics
+  .AddPrometheusExporter()        // Sends to Prometheus
+  .AddOtlpExporter()              // Sends to OTLP-compatible servers
+  .AddConsoleExporter();          // Sends to console (debugging)
+```
+
+**This is where the magic (and problems) happen.**
+
+## The Data Flow: Same Input, Different Outputs
+
+### Path 1: OpenTelemetry → Prometheus → Grafana
+```
+ASP.NET Core App
+↓ (OpenTelemetry SDK + Instrumentation)
+OpenTelemetry Metrics (OTEL format)
+↓ (Prometheus Exporter)
+Prometheus Server (preserves OTEL format)
+↓
+Grafana (queries Prometheus)
+```
+
+**Result:** Metrics maintain their original OpenTelemetry format.
+
+### Path 2: OpenTelemetry → APM Server → Grafana
+```
+ASP.NET Core App
+↓ (OpenTelemetry SDK + Instrumentation)
+OpenTelemetry Metrics (OTEL format)
+↓ (OTLP Exporter)
+APM Server (converts OTEL → Elastic format)
+↓
+Elasticsearch (Elastic APM format)
+↓
+Grafana (queries Elasticsearch)
+```
+
+**Result:** Metrics get transformed into Elastic's proprietary format.
+
+## The Format Transformation Problem
+
+### OpenTelemetry Format (Original)
+```json
+{
+  "name": "http.server.request.duration",
+  "description": "Duration of HTTP server requests",
+  "unit": "s",
+  "attributes": {
+    "http.method": "GET",
+    "http.route": "/api/users",
+    "http.status_code": "200"
+  },
+  "value": 0.125
+}
+```
+
+### Prometheus Format (Preserved)
+```bash
+# HELP http_server_request_duration_seconds Duration of HTTP server requests
+# TYPE http_server_request_duration_seconds histogram
+http_server_request_duration_seconds_bucket{http_method="GET",http_route="/api/users",http_status_code="200",le="0.1"} 45
+http_server_request_duration_seconds_bucket{http_method="GET",http_route="/api/users",http_status_code="200",le="0.5"} 67
+```
+
+### Elastic APM Format (Transformed)
+```json
+{
+  "metricset": {
+    "name": "app",
+    "samples": {
+      "transaction.duration.histogram": {
+        "value": 125000,
+        "unit": "micros"
+      }
+    }
+  },
+  "transaction": {
+    "type": "request"
+  },
+  "http": {
+    "request": {
+      "method": "GET"
+    },
+    "response": {
+      "status_code": 200
+    }
+  },
+  "url": {
+    "path": "/api/users"
+  }
+}
+```
+
+## Why APM Server Transforms the Data
+
+The APM Server acts as a **translator** for several reasons:
+
+1. **Elasticsearch Schema Compatibility**: Elasticsearch expects data in Elastic's APM format with specific field mappings
+2. **Kibana Integration**: Elastic's APM UI depends on specific field structures
+3. **Historical Compatibility**: Elastic APM existed before OpenTelemetry, so they maintain backward compatibility
+4. **Performance Optimization**: Elastic's format is optimized for their specific use cases
+
+## Dashboard Compatibility Matrix
+
+| Data Path                           | Dashboard Type              | Compatibility    | Reason                          |
+|:-------------------------------------|-----------------------------|:-----------------|---------------------------------|
+| OTEL → Prometheus → Grafana        | Microsoft ASP.NET Core     | ✅ Compatible   | No format conversion           |
+| OTEL → Prometheus → Grafana        | Elastic APM dashboards     | ❌ Incompatible | Different field structures     |
+| OTEL → APM Server → Grafana        | Microsoft ASP.NET Core     | ❌ Incompatible | Format converted to Elastic    |
+| OTEL → APM Server → Grafana        | Elastic APM dashboards     | ✅ Compatible   | Native Elastic format          |
+
+## Practical Example: Query Differences
+
+### Prometheus Query (Microsoft Dashboard)
+```bash
+# HTTP request duration 95th percentile
+histogram_quantile(0.95, 
+  rate(http_server_request_duration_seconds_bucket[5m])
+)
+
+# Request rate
+rate(http_server_request_duration_seconds_count[5m])
+```
+
+### Elasticsearch Query (Elastic APM)
+```json
+{
+  "aggs": {
+    "request_duration_95th": {
+      "percentiles": {
+        "field": "transaction.duration.us",
+        "percents": [95]
+      }
+    }
+  }
+}
+```
+
+## The Solution: Choose Your Path Wisely
+
+### Option 1: Optimize for Dashboard Ecosystem
+If you want to use Microsoft's pre-built ASP.NET Core dashboards:
+```csharp
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddPrometheusExporter()  // Direct to Prometheus
+    );
+```
+
+### Option 2: Optimize for Elastic Ecosystem
+If you want to use Elastic's APM features:
+```csharp
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddOtlpExporter(options => {
+            options.Endpoint = new Uri("http://apm-server:8200");
+        })
+    );
+```
+
+### Option 3: Hybrid Approach
+Send to both systems simultaneously:
+```csharp
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddPrometheusExporter()      // For Grafana dashboards
+        .AddOtlpExporter(options => { // For Elastic APM
+            options.Endpoint = new Uri("http://apm-server:8200");
+        })
+    );
+```
+
+## Key Takeaways for DevOps Engineers
+
+1. **The exporter determines the final format**, not just the instrumentation
+2. **APM Server transforms OpenTelemetry data** to fit Elastic's schema
+3. **Dashboard compatibility depends on the entire data path**, not just the client
+4. **Choose your monitoring stack based on your dashboard requirements**
+
+## Conclusion
+
+Understanding OpenTelemetry architecture is crucial for making informed monitoring decisions. The same instrumentation code can produce completely different dashboard experiences depending on which exporter and backend you choose.
+
+**The rule of thumb:**
+- Want Microsoft's ASP.NET Core dashboards? → Use Prometheus
+- Want Elastic's APM features? → Use APM Server (but build custom dashboards)
+- Want both? → Use dual exporters (but manage the complexity)
+
+Your dashboard strategy should drive your monitoring architecture decisions, not the other way around.
+
+---
+
+*This article is part of our monitoring strategy series. For a comprehensive comparison of Prometheus vs Elastic in production environments, read our [strategic analysis](./prometheus-elastic-aspnetcore-analysis).*

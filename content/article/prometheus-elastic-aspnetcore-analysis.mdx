@@ -28,9 +28,13 @@ After comprehensive analysis of both scenarios, I'm presenting this technical ev
 
 **Pain Points:**
 - Elasticsearch cluster requires 8-16GB RAM minimum even for our modest load
-- Weekly maintenance overhead: 4-6 hours
-- Dashboard creation from scratch for new metrics
-- Limited integration with ASP.NET Core's native metrics
+- Weekly maintenance overhead: 2-4 hours (cluster health monitoring, updates, backups)
+- **Dashboard creation complexity**: When using OpenTelemetry with Elastic APM Server, pre-built dashboards require significant customization because:
+  - APM Server transforms OpenTelemetry metrics into Elastic's proprietary format
+  - Microsoft's ASP.NET Core dashboards expect native OpenTelemetry format (as preserved by Prometheus)
+  - Each monitoring backend requires different dashboard templates due to format differences
+  - *([Detailed technical explanation](./opentelemetry-architecture-dashboard-compatibility))*
+- Limited integration with ASP.NET Core's native metrics when using Elastic APM Agent
 - Complex setup for Windows-hosted applications
 
 ## Scenario 1: On-Premise Environment Analysis
@@ -154,12 +158,12 @@ Infrastructure (Windows VMs):
 - Backup solutions: €480/year
 
 Operational:
-- Maintenance (4h/week × €95/h): €19,760/year
+- Maintenance (3h/week × €95/h): €14,820/year
 - Upgrades and patches: €2,400/year
 - Dashboard development: €4,800/year
 
-Total Annual Cost: €33,920
-3-Year Total: €101,760
+Total Annual Cost: €28,980
+3-Year Total: €86,940
 ```
 
 **Prometheus Stack Costs (Germany/EU):**
@@ -179,7 +183,7 @@ Total Annual Cost: €4,148
 3-Year Total: €12,444
 ```
 
-**On-Premise Savings: €89,316 over 3 years (88% cost reduction)**
+**On-Premise Savings: €74,496 over 3 years (86% cost reduction)**
 
 ## Scenario 2: Azure Cloud Environment Analysis
 
@@ -385,29 +389,29 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 
 ### Scenario 1: On-Premise Environment
 
-🏆 **Prometheus with Grafana**
+**Prometheus with Grafana**
 
 **Why Prometheus Wins On-Premise:**
-1. 💪 **Resource Efficiency**: 42% less RAM usage (7GB vs 12GB)
-2. 💰 **Cost Savings**: €89,316 savings over 3 years (88% reduction!)
-3. ⏰ **Maintenance Reduction**: 1 hour/week vs 4 hours/week
-4. 🪟 **Windows Compatibility**: Runs natively on current Windows infrastructure
-5. 📊 **Ready-Made Dashboards**: Microsoft's ASP.NET Core dashboards save 20-40 development hours
+1. **Resource Efficiency**: 42% less RAM usage (7GB vs 12GB)
+2. **Cost Savings**: €74,496 savings over 3 years (86% reduction)
+3. **Maintenance Reduction**: 1 hour/week vs 3 hours/week
+4. **Windows Compatibility**: Runs natively on current Windows infrastructure
+5. **Ready-Made Dashboards**: Microsoft's ASP.NET Core dashboards save 20-40 development hours
 
-🚀 **Implementation Advantage**: With our planned Linux migration, Prometheus provides identical functionality across both platforms, eliminating future reconfiguration work.
+**Implementation Advantage**: With our planned Linux migration, Prometheus provides identical functionality across both platforms, eliminating future reconfiguration work.
 
 ### Scenario 2: Azure Cloud Environment
 
-☁️ **Prometheus with Azure Monitor**
+**Prometheus with Azure Monitor**
 
 **Why Prometheus Wins in Azure:**
-1. 🔗 **Native Integration**: Zero-configuration Azure Monitor managed service
-2. 💸 **Cost Efficiency**: €56,160 savings over 3 years
-3. 🎯 **Operational Excellence**: Zero maintenance overhead with managed service
-4. 🏢 **Microsoft Ecosystem**: Aligns with documented ASP.NET Core best practices
-5. 🛡️ **Enterprise Features**: Built-in HA, backup, and security compliance
+1. **Native Integration**: Zero-configuration Azure Monitor managed service
+2. **Cost Efficiency**: €56,160 savings over 3 years
+3. **Operational Excellence**: Zero maintenance overhead with managed service
+4. **Microsoft Ecosystem**: Aligns with documented ASP.NET Core best practices
+5. **Enterprise Features**: Built-in HA, backup, and security compliance
 
-⭐ **Strategic Advantage**: Azure Monitor Prometheus eliminates infrastructure management entirely while providing enterprise-grade reliability.
+**Strategic Advantage**: Azure Monitor Prometheus eliminates infrastructure management entirely while providing enterprise-grade reliability.
 
 ### Hybrid Strategy: Best of Both Worlds
 
@@ -425,14 +429,14 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 
 ## Final Recommendation
 
-🏆 **For both on-premise and cloud environments, Prometheus and Grafana is a better choice for our C#/.NET environment.**
+**For both on-premise and cloud environments, Prometheus and Grafana is a better choice for our C#/.NET environment.**
 
 The evidence shows consistent advantages across both scenarios:
-- 💰 **88% cost reduction on-premise** (€89,316 savings!)
-- ☁️ **Significant operational efficiency gains in cloud** (€56,160 savings!)
-- 🔗 **Native ASP.NET Core integration**
-- 🚀 **Strategic alignment with our Linux migration plans**
-- 🏢 **Microsoft ecosystem compatibility**
+- **86% cost reduction on-premise** (€74,496 savings)
+- **Significant operational efficiency gains in cloud** (€56,160 savings)
+- **Native ASP.NET Core integration**
+- **Strategic alignment with our Linux migration plans**
+- **Microsoft ecosystem compatibility**
 
 ---
 
