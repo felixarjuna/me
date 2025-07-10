@@ -183,6 +183,9 @@ builder.Services.AddAllElasticApm();
 
 ### On-Premise Cost Comparison (3-Year Analysis)
 
+*(See [Appendix A](#appendix-a) for a detailed breakdown of on-premise operational costs.)*
+
+
 **Cost Baseline: Application with 10k-50k requests/day**
 
 **Elastic Stack Costs (Germany/EU):**
@@ -191,7 +194,7 @@ Infrastructure (Windows Server):
 - Hardware costs (12GB RAM, 8 vCPU): €304/year (€1,216 ÷ 4yr depreciation)
 - Additional storage (500GB): €50/year (€200 ÷ 4yr depreciation)
 - Windows Server licenses: €1,170/year (8-core minimum)
-- Backup storage: €120/year (~300GB backup data)
+- Backup storage: €120/year (~300GB backup data) - *([See Backup Cost Analysis in Appendix C](#appendix-c))*
 
 Operational:
 - Maintenance (1.5h/week × €95/h): €7,410/year
@@ -223,58 +226,8 @@ Total Annual Cost: €9,642
 
 *Hardware costs are based on actual pricing from our IT team: 8 cores, 32GB RAM, 450GB SSD server costs €812 one-time purchase, calculated with 4-year depreciation model.
 
-### Backup Cost Analysis
-
-**The backup cost difference is driven by data volume, not operational complexity:**
-
-**Elasticsearch Backup Requirements:**
-- **Data Volume**: ~200-300GB (logs + metrics + indices)
-- **Backup Storage**: ~300GB (with compression)
-- **Content**: Raw data, inverted indices, cluster configuration
-- **Retention**: Longer retention for compliance/debugging
-
-**Prometheus Backup Requirements:**
-- **Data Volume**: ~50-75GB (compressed time-series)
-- **Backup Storage**: ~75GB
-- **Content**: Compressed metrics, configuration files
-- **Retention**: Standard time-series retention
-
-**Key Insight**: Both systems use the same backup infrastructure and processes. The cost difference is purely storage-based, not operational complexity.
 
 
-### Operational Costs Breakdown Explanation
-
-**What the operational costs include:**
-
-**Maintenance Activities (1.5h/week × €95/h = €7,410/year):**
-- Weekly system health monitoring and log analysis
-- Performance optimization and query tuning
-- Disk space management and data retention policies
-- Security updates and vulnerability patching
-- Backup verification and disaster recovery testing
-- Alert fine-tuning and threshold adjustments
-
-**Upgrades and Patches (€1,200/year for both stacks):**
-- **Elastic Stack**: €1,200/year (team has existing expertise)
-  - Elasticsearch version upgrades with rolling updates
-  - APM Server compatibility testing
-  - Plugin updates and compatibility verification
-- **Prometheus Stack**: €1,200/year (learning curve for new technology)
-  - Prometheus server updates (requires learning new procedures)
-  - AlertManager configuration updates (new syntax and concepts)
-  - Exporter updates and compatibility testing (unfamiliar ecosystem)
-  - Additional time needed for troubleshooting during transition period
-
-**Dashboard Development:**
-- **Elastic Stack**: €3,600 one-time (€1,200/year amortized)
-  - Custom ASP.NET Core dashboard creation
-  - Business metrics visualization setup
-  - Alert dashboard configuration
-- **Prometheus Stack**: €800 one-time (€267/year amortized)
-  - Minimal customization of existing Microsoft dashboards
-  - Basic alert configuration
-
-**Important Note**: These operational costs are **identical between Windows and Linux** because the same maintenance activities, monitoring requirements, and administrative tasks are needed regardless of the operating system. The upgrade costs reflect the reality that switching to Prometheus requires a learning curve for the team, even though the technology itself may be simpler to maintain once mastered.
 
 ## Scenario 2: Azure Cloud Environment Analysis
 
@@ -401,7 +354,7 @@ Total Annual Cost: €14,772
 3-Year Total: €44,316
 ```
 
-**Azure Monitor + Prometheus (Germany/EU):**
+**Azure Monitor with Prometheus (Germany/EU):**
 ```
 Annual Recurring Costs:
 - Service Costs: €5,040/year
@@ -423,7 +376,7 @@ Total Annual Cost: €5,877
 
 **Cloud Environment Savings: €26,685 over 3 years (60% cost reduction)**
 
-*Note: All cost estimations involving labor (Integration, Dashboard Development, Management Overhead) are based on an internal senior developer rate of €95/hour.*
+*Note: All cost estimations involving labor (Integration, Dashboard Development, Management Overhead) are based on an approximate admin rate of €95/hour.*
 
 ## Microsoft Ecosystem Integration Analysis
 
@@ -501,6 +454,8 @@ app.Use(async (context, next) =>
 Our applications currently run on Windows, but the planned Linux migration this year presents an opportunity to optimize our monitoring strategy.
 
 **Prometheus Advantage During Migration:**
+
+*(See [Appendix B](#appendix-b) for a full cost analysis of running the monitoring stacks on Linux.)*
 - Identical configuration and behavior across Windows and Linux
 - No licensing concerns when moving from Windows Server
 - Container-ready architecture aligns with modern deployment practices
@@ -577,15 +532,91 @@ The evidence shows consistent advantages across both scenarios:
 
 ---
 
-## Appendix: Linux Deployment Alternative
+## Appendix
+
+### Appendix A: On-Premise Operational Costs Breakdown 
+
+**What the operational costs include:**
+
+**Maintenance Activities (1.5h/week × €95/h = €7,410/year):**
+- Weekly system health monitoring and log analysis
+- Performance optimization and query tuning
+- Disk space management and data retention policies
+- Security updates and vulnerability patching
+- Backup verification and disaster recovery testing
+- Alert fine-tuning and threshold adjustments
+
+**Upgrades and Patches (€1,200/year for both stacks):**
+- **Elastic Stack**: €1,200/year (team has existing expertise)
+- **Prometheus Stack**: €1,200/year (learning curve for new technology)
+
+**Dashboard Development:**
+- **Elastic Stack**: €3,600 one-time (€1,200/year amortized)
+- **Prometheus Stack**: €800 one-time (€267/year amortized)
+
+**Important Note**: These operational costs are **identical between Windows and Linux**.
+
+### Appendix B: Linux Deployment Alternative
 
 *Note: This section is provided for reference but is not part of the main strategic analysis.*
 
-### Why Consider Linux for Monitoring Infrastructure?
-
-In 2025, most organizations deploy monitoring infrastructure on Linux because:
+**Why Consider Linux for Monitoring Infrastructure?**
 - **No licensing costs** (free OS)
 - **Lower resource footprint** (smaller OS overhead)
+- **Better container ecosystem** (Docker/Kubernetes)
+- **Industry standard** for monitoring tools
+
+**Linux Deployment Costs (Germany/EU):**
+
+**Elastic Stack (Linux):**
+`{`
+Infrastructure:
+- Hardware costs (12GB RAM, 8 vCPU): €304/year (€1,216 ÷ 4yr depreciation)
+- Additional storage (500GB): €50/year (€200 ÷ 4yr depreciation)
+- OS licenses: €0/year (Linux)
+- Backup storage: €120/year (~300GB backup data)
+
+Operational (identical to Windows):
+- Maintenance (1.5h/week × €95/h): €7,410/year
+- Upgrades and patches: €1,200/year
+- Dashboard development: €1,200/year (€3,600 spread over 3 years)
+
+Total Annual Cost: €10,684
+3-Year Total: €32,052
+`}`
+
+**Prometheus Stack (Linux):**
+`{`
+Infrastructure:
+- Hardware costs (7GB RAM, 5 vCPU): €177/year (€708 ÷ 4yr depreciation)
+- Additional storage (200GB): €25/year (€100 ÷ 4yr depreciation)
+- OS licenses: €0/year (Linux)
+- Backup storage: €60/year (~75GB backup data)
+
+Operational (identical to Windows):
+- Maintenance (1.5h/week × €95/h): €7,410/year
+- Upgrades and patches: €1,200/year (learning curve for new technology)
+- Dashboard development: €267/year (€800 spread over 3 years)
+
+Total Annual Cost: €8,939
+3-Year Total: €26,817
+`}`
+
+**Linux Deployment Savings: €5,235 over 3 years (16% cost reduction)**
+
+### Appendix C: Backup Cost Analysis
+
+**The backup cost difference is driven by data volume, not operational complexity:**
+
+**Elasticsearch Backup Requirements:**
+- **Data Volume**: ~200-300GB (logs + metrics + indices)
+- **Backup Storage**: ~300GB (with compression)
+
+**Prometheus Backup Requirements:**
+- **Data Volume**: ~50-75GB (compressed time-series)
+- **Backup Storage**: ~75GB
+
+**Key Insight**: Both systems use the same backup infrastructure and processes. The cost difference is purely storage-based.
 - **Better container ecosystem** (Docker/Kubernetes)
 - **Industry standard** for monitoring tools
 
