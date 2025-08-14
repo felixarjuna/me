@@ -274,10 +274,13 @@ Total Annual Cost: €10,309
 ### Elastic Cloud on Azure
 
 **Service Costs (Germany/EU):**
-- Elastic Cloud (Basic tier, 8GB): ~€480/month
-- Azure compute for integration: €180/month
-- Data transfer costs: €60/month
-- **Total: €720/month (€8,640/year)**
+- Elastic Cloud (525GB storage, 18GB memory): €445/month
+  - Configuration: Elasticsearch (15GB), Kibana (1GB), APM (1GB), Integrations Server (1GB)
+  - Hourly rate: $0.6375 = $459/month ≈ €445/month (converted at ~0.97 EUR/USD)
+  *Source: [Elastic Cloud Pricing Calculator](https://cloud.elastic.co/pricing)* with Netherlands (westeurope) selected as the region.
+- Data transfer costs: €24/month (~25GB egress/month × €0.08/GB + base allowances)
+  *Source: [Elastic Cloud Data Transfer Pricing](https://www.elastic.co/blog/elasticsearch-service-data-transfer-and-snapshot-storage-pricing) and Azure egress rates*
+- **Total: €469/month (€5,628/year)**
 
 **Challenges:**
 - Dual vendor billing (Microsoft + Elastic)
@@ -368,21 +371,24 @@ az aks update \
 **Elastic Cloud on Azure (Germany/EU):**
 ```
 Annual Recurring Costs:
-- Service Costs: €8,640/year
-  - Source: Official Elastic Cloud pricing for an 8GB RAM tier.
-- Data Transfer Costs: €720/year
-  - Source: Azure egress pricing for estimated data volume.
+- Service Costs: €5,628/year
+  - Source: Elastic Cloud pricing calculator - 525GB storage, 18GB memory at $0.6375/hour
+  - Configuration: Elasticsearch (15GB), Kibana (1GB), APM (1GB), Integrations Server (1GB)
+  - *Source: [Elastic Cloud Pricing Calculator](https://cloud.elastic.co/pricing)*
+- Data Transfer Costs: €288/year
+  - Source: Azure egress pricing for estimated ~25GB/month data volume and Elastic Cloud data transfer costs
+  - *Source: [Elastic Cloud Data Transfer Pricing](https://www.elastic.co/blog/elasticsearch-service-data-transfer-and-snapshot-storage-pricing)*
 - Management Overhead: €3,420/year
   - Explained: ~3 hours/month for dual-vendor management (reconciling Azure/Elastic bills, managing support tickets with two vendors, user management across platforms). Calculated at an internal rate of €95/hour.
 
 One-Time Setup Costs (Amortized over 3 years):
 - Integration Costs: €792/year (€2,375 one-time)
-  - Explained: Estimated 25 hours for initial setup, pipeline configuration, and cross-platform security.
+  - Estimated 25 hours for initial setup, pipeline configuration, and cross-platform security.
 - Dashboard Development: €1,200/year (€3,600 one-time)
-  - Explained: Estimated 38 hours to build custom ASP.NET Core dashboards from scratch.
+  - Estimated 38 hours to build custom ASP.NET Core dashboards from scratch.
 
-Total Annual Cost: €14,772
-3-Year Total: €44,316
+Total Annual Cost: €11,328
+3-Year Total: €33,984
 ```
 
 **Azure Monitor with Prometheus (Germany West Central - EUR):**
@@ -404,7 +410,7 @@ Total Annual Cost: €5,817
 3-Year Total: €17,451
 ```
 
-**Cloud Environment Savings: €26,865 over 3 years (61% cost reduction)**
+**Cloud Environment Savings: €16,533 over 3 years (49% cost reduction)**
 
 *Note: All cost estimations involving labor (Integration, Dashboard Development, Management Overhead) are based on an approximate admin rate of €95/hour.*
 
@@ -526,7 +532,7 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 
 **Why Prometheus Wins in Azure:**
 1. **Native Integration**: Zero-configuration Azure Monitor managed service
-2. **Cost Efficiency**: €26,865 savings over 3 years (61% cost reduction)
+2. **Cost Efficiency**: €16,533 savings over 3 years (49% cost reduction)
 3. **Operational Excellence**: Zero maintenance overhead with managed service
 4. **Microsoft Ecosystem**: Aligns with documented ASP.NET Core best practices
 5. **Enterprise Features**: Built-in HA, backup, and security compliance
@@ -553,7 +559,7 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 
 The evidence shows consistent advantages across both scenarios:
 - **10% cost reduction on-premise** (€3,435 savings on Windows)
-- **Significant operational efficiency gains in cloud** (€26,865 savings - 61% reduction)
+- **Significant operational efficiency gains in cloud** (€16,533 savings - 49% reduction)
 - **Native ASP.NET Core integration**
 - **Strategic alignment with our Linux migration plans**
 - **Microsoft ecosystem compatibility**

@@ -3,7 +3,8 @@
     "allow": [
       "WebSearch",
       "WebFetch(domain:azure.microsoft.com)",
-      "WebFetch(domain:learn.microsoft.com)"
+      "WebFetch(domain:learn.microsoft.com)",
+      "WebFetch(domain:www.elastic.co)"
     ],
     "deny": [],
     "ask": [],
