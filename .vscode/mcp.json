@@ -1,0 +1,18 @@
+{
+  "servers": {
+    "microsoft.docs.mcp": {
+      "url": "https://learn.microsoft.com/api/mcp",
+      "type": "http"
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "time": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "mcp/time"],
+      "type": "stdio"
+    }
+  },
+  "inputs": []
+}

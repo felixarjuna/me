@@ -81,7 +81,7 @@ After comprehensive analysis of both scenarios, I'm presenting this technical ev
 ```
 
 **Advantages:**
-- 77% reduction in resource requirements
+- 42% reduction in resource requirements
 - Native ASP.NET Core metrics support
 - Pre-built Microsoft dashboards available
 - **Simplified scaling**: For small-medium loads:
@@ -91,10 +91,17 @@ After comprehensive analysis of both scenarios, I'm presenting this technical ev
   - No shard rebalancing or cluster coordination needed
 
 **Implementation with ASP.NET Core:**
-```csharp
-// Program.cs - Minimal configuration required
-var builder = WebApplication.CreateBuilder(args);
 
+*Required NuGet packages:*
+```xml
+<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.6.0" />
+<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.6.0-beta.2" />
+<PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.6.0-rc.1" />
+```
+
+```csharp
+// Program.cs - Official Microsoft OpenTelemetry configuration
+var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenTelemetry()
   .WithMetrics(metrics =>
   {
@@ -114,38 +121,59 @@ app.MapPrometheusScrapingEndpoint("/metrics");
 app.Run();
 ```
 
-**Custom Business Metrics:**
+*Source: [ASP.NET Core metrics - Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/log-mon/metrics/metrics?view=aspnetcore-9.0)*
+
+**Custom Business Metrics (OpenTelemetry.NET):**
 ```csharp
 public class OrderProcessingService
 {
-  private static readonly Counter ProcessedOrders = 
-    Metrics.CreateCounter("orders_processed_total", "Total processed orders",  new[] { "status", "payment_type" });
+  private readonly Counter<int> _processedOrders;
+  private readonly Histogram<double> _processingDuration;
 
-  private static readonly Histogram ProcessingDuration = 
-    Metrics.CreateHistogram("order_processing_duration_seconds", "Order processing time");
+  public OrderProcessingService(IMeterFactory meterFactory)
+  {
+    var meter = meterFactory.Create("MyApp.Orders");
+    _processedOrders = meter.CreateCounter<int>("orders_processed_total", 
+      description: "Total processed orders");
+    _processingDuration = meter.CreateHistogram<double>("order_processing_duration_seconds", 
+      description: "Order processing time in seconds");
+  }
 
   public async Task<ProcessResult> ProcessOrderAsync(Order order)
   {
-    using (ProcessingDuration.NewTimer())
+    var stopwatch = Stopwatch.StartNew();
+    try
     {
-      try
-      {
-        var result = await ExecuteProcessingAsync(order);
-        ProcessedOrders.WithLabels("success", order.PaymentType).Inc();
-        return result;
-      }
-      catch (Exception)
-      {
-        ProcessedOrders.WithLabels("failed", order.PaymentType).Inc();
-        throw;
-      }
+      var result = await ExecuteProcessingAsync(order);
+      _processedOrders.Add(1, 
+        new KeyValuePair<string, object?>("status", "success"),
+        new KeyValuePair<string, object?>("payment_type", order.PaymentType));
+      return result;
+    }
+    catch (Exception)
+    {
+      _processedOrders.Add(1, 
+        new KeyValuePair<string, object?>("status", "failed"),
+        new KeyValuePair<string, object?>("payment_type", order.PaymentType));
+      throw;
+    }
+    finally
+    {
+      _processingDuration.Record(stopwatch.Elapsed.TotalSeconds,
+        new KeyValuePair<string, object?>("payment_type", order.PaymentType));
     }
   }
 }
+
+// Register in Program.cs
+builder.Services.AddSingleton<OrderProcessingService>();
 ```
 
+*Source: [ASP.NET Core metrics - Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/log-mon/metrics/metrics?view=aspnetcore-9.0)*
+
 **Ready-Made Dashboard Integration:**
-Microsoft provides official Grafana dashboards ([aspnetcore-grafana](https://github.com/JamesNK/aspnetcore-grafana)) that include:
+Microsoft provides official ASP.NET Core Grafana dashboards ([aspnetcore-grafana](https://github.com/JamesNK/aspnetcore-grafana)) that include:
+*Note: Dashboard source code is now maintained at [aka.ms/dotnet/grafana-source](https://aka.ms/dotnet/grafana-source)*
 - HTTP request duration and throughput metrics
 - Exception rates with detailed breakdowns
 - GC performance and memory utilization
@@ -264,7 +292,7 @@ Azure Monitor now offers fully managed Prometheus services, aligning with their 
 
 **Infrastructure as Code (Bicep):**
 ```bicep
-resource prometheusWorkspace 'Microsoft.Monitor/accounts@2023-04-03' = {
+resource prometheusWorkspace 'Microsoft.Monitor/accounts@2025-05-03-preview' = {
   name: 'prometheus-workspace-prod'
   location: location
   properties: {
@@ -313,11 +341,14 @@ az aks update \
 # - Enterprise security integration
 ```
 
-**Service Costs (Germany/EU):**
-- Azure Monitor Prometheus: €0.30 per million samples
+**Service Costs (Germany West Central Region - EUR):**
+- Azure Monitor Prometheus. *Source: [Azure Monitor Pricing](https://azure.microsoft.com/en-us/pricing/details/monitor/)*
+  - Ingestion: €0.139 per 10 million samples
+  - Queries: €0.001 per 10 million samples
 - Estimated monthly cost: €180-300 (based on 10k-50k requests/day)
-- Grafana managed service: €120/month
-- **Total: €300-420/month (€3,600-5,040/year)**
+- *Note: Pricing includes 18-month retention.*
+- Azure Managed Grafana: €115/month (converted from USD pricing)
+- **Total: €295-415/month (€3,540-4,980/year)**
 
 **Additional Prometheus-Specific Advantages on Azure:**
 - Zero-configuration setup with Azure Monitor
@@ -354,27 +385,26 @@ Total Annual Cost: €14,772
 3-Year Total: €44,316
 ```
 
-**Azure Monitor with Prometheus (Germany/EU):**
+**Azure Monitor with Prometheus (Germany West Central - EUR):**
 ```
 Annual Recurring Costs:
-- Service Costs: €5,040/year
-  - Source: Azure Monitor official pricing for estimated data volume, plus Azure Managed Grafana.
+- Service Costs: €4,980/year (€3,540-4,980/year range)
 - Data Transfer Costs: €0/year
-  - Explained: All traffic remains within the Azure network.
+  - All traffic remains within the Azure network.
 - Management Overhead: €570/year
-  - Explained: ~0.5 hours/month for single-vendor management (reviewing one integrated Azure bill).
+  - ~0.5 hours/month for single-vendor management (reviewing one integrated Azure bill).
 
 One-Time Setup Costs (Amortized over 3 years):
 - Integration Costs: €0/year
-  - Explained: Native Azure service, minimal setup effort required.
+  - Native Azure service, minimal setup effort required.
 - Dashboard Development: €267/year (€800 one-time)
-  - Explained: Estimated 8-9 hours to customize pre-built Microsoft dashboards.
+  - Estimated 8-9 hours to customize pre-built Microsoft dashboards.
 
-Total Annual Cost: €5,877
-3-Year Total: €17,631
+Total Annual Cost: €5,601
+3-Year Total: €16,803
 ```
 
-**Cloud Environment Savings: €26,685 over 3 years (60% cost reduction)**
+**Cloud Environment Savings: €27,513 over 3 years (62% cost reduction)**
 
 *Note: All cost estimations involving labor (Integration, Dashboard Development, Management Overhead) are based on an approximate admin rate of €95/hour.*
 
@@ -409,13 +439,17 @@ app.Use(async (context, next) =>
 
 ### Performance Comparison
 
+*Note: Performance metrics are estimates based on typical deployment scenarios and may vary based on configuration, load, and infrastructure.*
+
 | Metric | Elastic (Current) | Prometheus + Azure |
 |--------|-------------------|-------------------|
-| Metric ingestion latency | 30-60 seconds | 5-15 seconds |
-| Query response time | 2-5 seconds | 100-500ms |
-| Dashboard load time | 5-15 seconds | 1-3 seconds |
+| Metric ingestion latency | 30-60 seconds* | 5-15 seconds* |
+| Query response time | 2-5 seconds* | 100-500ms* |
+| Dashboard load time | 5-15 seconds* | 1-3 seconds* |
 | Alert evaluation frequency | 1 minute | 15 seconds |
 | Data retention cost | High (full indexing) | Low (time-series compression) |
+
+*\*Performance varies by data volume, query complexity, and infrastructure configuration*
 
 ## Risk Assessment and Mitigation
 
@@ -519,7 +553,7 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 
 The evidence shows consistent advantages across both scenarios:
 - **11% cost reduction on-premise** (€3,636 savings on Windows)
-- **Significant operational efficiency gains in cloud** (€56,160 savings)
+- **Significant operational efficiency gains in cloud** (€27,513 savings - 62% reduction)
 - **Native ASP.NET Core integration**
 - **Strategic alignment with our Linux migration plans**
 - **Microsoft ecosystem compatibility**
