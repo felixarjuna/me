@@ -244,13 +244,13 @@ Infrastructure (Windows Server):
 Operational:
 - Maintenance (1.5h/week × €95/h): €7,410/year
 - Upgrades and patches: €1,200/year (learning curve for new technology)
-- Dashboard development (minimal): €800/year
+- Dashboard development (minimal): €267/year (€800 spread over 3 years)
 
-Total Annual Cost: €9,642
-3-Year Total: €28,926
+Total Annual Cost: €10,309
+3-Year Total: €30,927
 ```
 
-**On-Premise Savings: €3,636 over 3 years (11% cost reduction)**
+**On-Premise Savings: €1,635 over 3 years (5% cost reduction)**
 
 *Hardware costs are based on actual pricing from our IT team: 8 cores, 32GB RAM, 450GB SSD server costs €812 one-time purchase, calculated with 4-year depreciation model.
 
@@ -345,9 +345,9 @@ az aks update \
 - Azure Monitor Prometheus. *Source: [Azure Monitor Pricing](https://azure.microsoft.com/en-us/pricing/details/monitor/)*
   - Ingestion: €0.139 per 10 million samples
   - Queries: €0.001 per 10 million samples
-- Estimated monthly cost: €180-300 (based on 10k-50k requests/day)
-- *Note: Pricing includes 18-month retention.*
-- Azure Managed Grafana: €115/month (converted from USD pricing)
+- Estimated monthly cost: €180-300 (based on 10k-50k requests/day). *Note: Pricing includes 18-month retention.*
+- Azure Managed Grafana: €115/month 
+  *Source: [Azure Managed Grafana Pricing](https://azure.microsoft.com/en-us/pricing/details/managed-grafana/#pricing)*
 - **Total: €295-415/month (€3,540-4,980/year)**
 
 **Additional Prometheus-Specific Advantages on Azure:**
@@ -388,7 +388,7 @@ Total Annual Cost: €14,772
 **Azure Monitor with Prometheus (Germany West Central - EUR):**
 ```
 Annual Recurring Costs:
-- Service Costs: €4,980/year (€3,540-4,980/year range)
+- Service Costs: €4,764/year (€3,540-4,980/year range, using mid-point €4,260 + €115×12 for Grafana)
 - Data Transfer Costs: €0/year
   - All traffic remains within the Azure network.
 - Management Overhead: €570/year
@@ -513,7 +513,7 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 
 **Why Prometheus Wins On-Premise:**
 1. **Resource Efficiency**: 42% less RAM usage (7GB vs 12GB)
-2. **Cost Savings**: €3,636 savings over 3 years (11% reduction on Windows)
+2. **Cost Savings**: €1,635 savings over 3 years (5% reduction on Windows)
 3. **Lower Data Volume**: Smaller storage and backup requirements
 4. **Cross-Platform**: Runs natively on Windows and Linux
 5. **Ready-Made Dashboards**: Microsoft's ASP.NET Core dashboards available out-of-the-box
@@ -526,7 +526,7 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 
 **Why Prometheus Wins in Azure:**
 1. **Native Integration**: Zero-configuration Azure Monitor managed service
-2. **Cost Efficiency**: €56,160 savings over 3 years
+2. **Cost Efficiency**: €27,513 savings over 3 years (62% cost reduction)
 3. **Operational Excellence**: Zero maintenance overhead with managed service
 4. **Microsoft Ecosystem**: Aligns with documented ASP.NET Core best practices
 5. **Enterprise Features**: Built-in HA, backup, and security compliance
@@ -552,7 +552,7 @@ After comprehensive analysis, I'm making scenario-specific recommendations based
 **For both on-premise and cloud environments, Prometheus and Grafana is a better choice for our C#/.NET environment.**
 
 The evidence shows consistent advantages across both scenarios:
-- **11% cost reduction on-premise** (€3,636 savings on Windows)
+- **5% cost reduction on-premise** (€1,635 savings on Windows)
 - **Significant operational efficiency gains in cloud** (€27,513 savings - 62% reduction)
 - **Native ASP.NET Core integration**
 - **Strategic alignment with our Linux migration plans**
@@ -651,46 +651,6 @@ Total Annual Cost: €8,939
 - **Backup Storage**: ~75GB
 
 **Key Insight**: Both systems use the same backup infrastructure and processes. The cost difference is purely storage-based.
-- **Better container ecosystem** (Docker/Kubernetes)
-- **Industry standard** for monitoring tools
-
-### Linux Deployment Costs (Germany/EU)
-
-**Elastic Stack (Linux):**
-```
-Infrastructure:
-- Hardware costs (12GB RAM, 8 vCPU): €304/year (€1,216 ÷ 4yr depreciation)
-- Additional storage (500GB): €50/year (€200 ÷ 4yr depreciation)
-- OS licenses: €0/year (Linux)
-- Backup storage: €120/year (~300GB backup data)
-
-Operational (identical to Windows):
-- Maintenance (1.5h/week × €95/h): €7,410/year
-- Upgrades and patches: €1,200/year
-- Dashboard development: €1,200/year (€3,600 spread over 3 years)
-
-Total Annual Cost: €10,684
-3-Year Total: €32,052
-```
-
-**Prometheus Stack (Linux):**
-```
-Infrastructure:
-- Hardware costs (7GB RAM, 5 vCPU): €177/year (€708 ÷ 4yr depreciation)
-- Additional storage (200GB): €25/year (€100 ÷ 4yr depreciation)
-- OS licenses: €0/year (Linux)
-- Backup storage: €60/year (~75GB backup data)
-
-Operational (identical to Windows):
-- Maintenance (1.5h/week × €95/h): €7,410/year
-- Upgrades and patches: €1,200/year (learning curve for new technology)
-- Dashboard development: €267/year (€800 spread over 3 years)
-
-Total Annual Cost: €8,939
-3-Year Total: €26,817
-```
-
-**Linux Deployment Savings: €5,235 over 3 years (16% cost reduction)**
 
 ### Key Insight
 
